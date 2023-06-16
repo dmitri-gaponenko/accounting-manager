@@ -1,5 +1,5 @@
 <template>
-  <button class="btn">
+  <button :class="['btn', {'btn-small': small}]">
     <slot></slot>
   </button>
 </template>
@@ -7,6 +7,12 @@
 <script>
 export default {
   name: 'am-button',
+  props: {
+    small: {
+      type: Boolean,
+      required: false,
+    },
+  },
 };
 </script>
 
@@ -27,7 +33,10 @@ export default {
   text-transform: uppercase;
   min-width: 64px;
 }
-
+.btn-small {
+  padding: 0;
+  text-transform: lowercase;
+}
 .btn:hover {
   border: 1px solid #006064;
   color: #006064;

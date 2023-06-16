@@ -70,16 +70,38 @@
             <td>{{ payment.paymentDescription }}</td>
           </tr>
         </table>
+        <div class="buttons">
+          <am-button @click="handleExportButton" :small="true">Export</am-button>
+          <am-button @click="handleClearButton" :small="true">Clear</am-button>
+        </div>
       </div>
+
+      <am-popup
+          :is-open="isPopupOpen"
+          :title="''"
+          @close="closePopup"
+      >
+        <div class="row">
+          <label for="res">
+            <textarea
+                v-model="stringifyExportResult"
+                id="res"
+                rows="8"
+                cols="50"
+            ></textarea>
+          </label>
+        </div>
+      </am-popup>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import {
-  reactive, defineComponent, ref, watch,
+  reactive, defineComponent, ref, watch, computed,
 } from 'vue';
 import AmButton from '@/components/UI/Button.vue';
+import AmPopup from '@/components/UI/Popup.vue';
 
 interface PaymentsInfo {
   paymentDate: string,
@@ -93,6 +115,7 @@ export default defineComponent({
   name: 'am-board',
   components: {
     AmButton,
+    AmPopup,
   },
   setup() {
     const paymentDate = ref(new Date().toISOString().slice(0, 10));
@@ -125,6 +148,8 @@ export default defineComponent({
       'Прокат']);
     const payments = ref([] as PaymentsInfo[]);
 
+    const isPopupOpen = ref(false);
+
     const paymentsInLocalStorage = localStorage.getItem('am_payments');
     if (paymentsInLocalStorage) {
       // eslint-disable-next-line no-underscore-dangle
@@ -138,12 +163,6 @@ export default defineComponent({
     }
 
     const handleSaveButton = () => {
-      // console.log('paymentDate:', paymentDate.value);
-      // console.log('paymentAmount:', paymentAmount.value);
-      // console.log('paymentCategory:', paymentCategory.value);
-      // console.log('paymentType:', paymentType.value);
-      // console.log('paymentDescription:', paymentDescription.value);
-
       payments.value.push({
         paymentDate: paymentDate.value,
         paymentAmount: paymentAmount.value,
@@ -151,7 +170,35 @@ export default defineComponent({
         paymentType: paymentType.value,
         paymentDescription: paymentDescription.value,
       });
+
+      // clear inputs
+      paymentDate.value = new Date().toISOString().slice(0, 10);
+      paymentAmount.value = '';
+      paymentCategory.value = 'Питание/магазин';
+      paymentDescription.value = '';
+      paymentType.value = 'Card';
     };
+
+    const handleClearButton = () => {
+      payments.value = [];
+    };
+
+    const openPopup = () => {
+      isPopupOpen.value = true;
+    };
+
+    const closePopup = () => {
+      isPopupOpen.value = false;
+    };
+
+    const handleExportButton = () => {
+      openPopup();
+    };
+
+    const stringifyExportResult = computed(() => payments.value.map((el: PaymentsInfo) => {
+      const result = `${el.paymentDate}\t${el.paymentAmount}\t${el.paymentDescription}\t${el.paymentCategory}`;
+      return result;
+    }).join('\n'));
 
     watch(
       () => payments,
@@ -170,6 +217,11 @@ export default defineComponent({
       categories,
       payments,
       handleSaveButton,
+      handleClearButton,
+      handleExportButton,
+      isPopupOpen,
+      closePopup,
+      stringifyExportResult,
     };
   },
 });
@@ -214,6 +266,6 @@ h3 {
   margin-top: 20px;
   display: flex;
   flex-direction: column;
-  align-items: start;
+  align-items: center;
 }
 </style>
