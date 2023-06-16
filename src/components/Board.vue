@@ -37,7 +37,7 @@
 
         <div class="row">
           <span class="label">Amount:</span>
-          <input v-model="paymentAmount" v-focus>
+          <input v-model="paymentAmount">
         </div>
 
         <div class="row">
