@@ -1,5 +1,7 @@
 # accounting-manager
 
+https://dmitri-gaponenko.github.io/accounting-manager/index.html
+
 ## Project setup
 ```
 npm install
