@@ -180,7 +180,10 @@ export default defineComponent({
     };
 
     const handleClearButton = () => {
-      payments.value = [];
+      // eslint-disable-next-line no-restricted-globals
+      if (confirm('Are you sure you want to clear all data?')) {
+        payments.value = [];
+      }
     };
 
     const openPopup = () => {
