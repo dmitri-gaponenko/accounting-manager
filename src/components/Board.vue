@@ -37,7 +37,7 @@
 
         <div class="row">
           <span class="label">Amount:</span>
-          <input v-model="paymentAmount">
+          <input type="number" v-model="paymentAmount">
         </div>
 
         <div class="row">
