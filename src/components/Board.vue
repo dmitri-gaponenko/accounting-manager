@@ -165,7 +165,7 @@ export default defineComponent({
     const handleSaveButton = () => {
       payments.value.push({
         paymentDate: paymentDate.value,
-        paymentAmount: paymentAmount.value,
+        paymentAmount: paymentAmount.value.replaceAll('.', ','),
         paymentCategory: paymentCategory.value,
         paymentType: paymentType.value,
         paymentDescription: paymentDescription.value,
