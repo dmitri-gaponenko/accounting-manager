@@ -47,7 +47,12 @@
       </div>
 
       <div class="buttons">
-        <am-button @click="handleSaveButton">Save</am-button>
+        <am-button @click="handleSaveButton">
+          {{ currentId === '' ? 'Save' : 'Update' }}
+        </am-button>
+        <am-button v-if="currentId !== ''" @click="handleDeleteButton">
+          Delete
+        </am-button>
       </div>
 
       <div class="payments" v-if="payments.length">
@@ -56,17 +61,18 @@
             <th>Date</th>
             <th>Amount</th>
             <th>Category</th>
-            <th>Type</th>
             <th>Description</th>
           </tr>
           <tr
             v-for="payment in payments"
             :key="payment"
           >
-            <td>{{ payment.paymentDate }}</td>
+            <td @click="handleEditButton(payment.paymentId)"
+                style="font-size: 12px; text-decoration: underline;">
+              {{ new Date(payment.paymentDate).toDateString().slice(4, 10) }}
+            </td>
             <td>{{ payment.paymentAmount }}</td>
-            <td>{{ payment.paymentCategory }}</td>
-            <td>{{ payment.paymentType }}</td>
+            <td style="font-size: 12px;">{{ payment.paymentCategory }}</td>
             <td>{{ payment.paymentDescription }}</td>
           </tr>
         </table>
@@ -102,8 +108,11 @@ import {
 } from 'vue';
 import AmButton from '@/components/UI/Button.vue';
 import AmPopup from '@/components/UI/Popup.vue';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { v4 as uuidv4 } from 'uuid';
 
 interface PaymentsInfo {
+  paymentId: string,
   paymentDate: string,
   paymentAmount: string,
   paymentCategory: string,
@@ -148,12 +157,14 @@ export default defineComponent({
       'Прокат']);
     const payments = ref([] as PaymentsInfo[]);
 
+    const currentId = ref('');
     const isPopupOpen = ref(false);
 
     const paymentsInLocalStorage = localStorage.getItem('am_payments');
     if (paymentsInLocalStorage) {
       // eslint-disable-next-line no-underscore-dangle
       payments.value = JSON.parse(paymentsInLocalStorage)._value.map((el: PaymentsInfo) => ({
+        paymentId: el.paymentId,
         paymentDate: el.paymentDate,
         paymentAmount: el.paymentAmount,
         paymentCategory: el.paymentCategory,
@@ -162,21 +173,59 @@ export default defineComponent({
       }));
     }
 
-    const handleSaveButton = () => {
-      payments.value.push({
-        paymentDate: paymentDate.value,
-        paymentAmount: paymentAmount.value.toString().replaceAll('.', ','),
-        paymentCategory: paymentCategory.value,
-        paymentType: paymentType.value,
-        paymentDescription: paymentDescription.value,
-      });
-
-      // clear inputs
+    const clearInputs = () => {
+      currentId.value = '';
       paymentDate.value = new Date().toISOString().slice(0, 10);
       paymentAmount.value = '';
       paymentCategory.value = 'Питание/магазин';
       paymentDescription.value = '';
       paymentType.value = 'Card';
+    };
+
+    const handleSaveButton = () => {
+      if (currentId.value === '') {
+        const id = uuidv4();
+        payments.value.push({
+          paymentId: id,
+          paymentDate: paymentDate.value,
+          paymentAmount: paymentAmount.value.toString().replaceAll('.', ','),
+          paymentCategory: paymentCategory.value,
+          paymentType: paymentType.value,
+          paymentDescription: paymentDescription.value,
+        });
+      } else {
+        const editPayment = payments.value.find((el) => el.paymentId === currentId.value);
+        if (editPayment) {
+          editPayment.paymentDate = paymentDate.value;
+          editPayment.paymentAmount = paymentAmount.value.toString().replaceAll('.', ',');
+          editPayment.paymentCategory = paymentCategory.value;
+          editPayment.paymentDescription = paymentDescription.value;
+          editPayment.paymentType = paymentType.value;
+        }
+      }
+
+      clearInputs();
+    };
+
+    const handleDeleteButton = () => {
+      const index = payments.value.findIndex((el) => el.paymentId === currentId.value);
+      if (index > -1) {
+        payments.value.splice(index, 1);
+      }
+
+      clearInputs();
+    };
+
+    const handleEditButton = (id: string) => {
+      const currentPayment = payments.value.find((el) => el.paymentId === id);
+      if (currentPayment) {
+        currentId.value = id;
+        paymentDate.value = currentPayment?.paymentDate;
+        paymentAmount.value = currentPayment?.paymentAmount;
+        paymentCategory.value = currentPayment?.paymentCategory;
+        paymentDescription.value = currentPayment?.paymentDescription;
+        paymentType.value = currentPayment?.paymentType;
+      }
     };
 
     const handleClearButton = () => {
@@ -199,8 +248,8 @@ export default defineComponent({
     };
 
     const stringifyExportResult = computed(() => payments.value.map((el: PaymentsInfo) => {
-      const result = `${el.paymentDate}\t${el.paymentAmount}\t${el.paymentDescription}\t${el.paymentCategory}`;
-      return result;
+      const desc = `${el.paymentType === 'Cash' ? '(cash) ' : ''}${el.paymentDescription}`;
+      return `${el.paymentDate}\t${el.paymentAmount}\t${desc}\t${el.paymentCategory}`;
     }).join('\n'));
 
     watch(
@@ -212,6 +261,7 @@ export default defineComponent({
     );
 
     return {
+      currentId,
       paymentDate,
       paymentAmount,
       paymentType,
@@ -220,6 +270,8 @@ export default defineComponent({
       categories,
       payments,
       handleSaveButton,
+      handleEditButton,
+      handleDeleteButton,
       handleClearButton,
       handleExportButton,
       isPopupOpen,
