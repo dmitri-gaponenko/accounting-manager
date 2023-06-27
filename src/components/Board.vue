@@ -63,18 +63,20 @@
             <th>Category</th>
             <th>Description</th>
           </tr>
-          <tr
-            v-for="payment in payments"
-            :key="payment"
-          >
-            <td @click="handleEditButton(payment.paymentId)"
-                style="font-size: 12px; text-decoration: underline;">
-              {{ new Date(payment.paymentDate).toDateString().slice(4, 10) }}
-            </td>
-            <td>{{ payment.paymentAmount }}</td>
-            <td style="font-size: 12px;">{{ payment.paymentCategory }}</td>
-            <td>{{ payment.paymentDescription }}</td>
-          </tr>
+          <TransitionGroup name="list">
+            <tr
+              v-for="payment in payments"
+              :key="payment"
+            >
+              <td @click="handleEditButton(payment.paymentId)"
+                  style="font-size: 12px; text-decoration: underline;">
+                {{ new Date(payment.paymentDate).toDateString().slice(4, 10) }}
+              </td>
+              <td>{{ payment.paymentAmount }}</td>
+              <td style="font-size: 12px;">{{ payment.paymentCategory }}</td>
+              <td>{{ payment.paymentDescription }}</td>
+            </tr>
+          </TransitionGroup>
         </table>
         <div class="buttons">
           <am-button @click="handleExportButton" :small="true">Export</am-button>
@@ -147,7 +149,7 @@ export default defineComponent({
       'Питание вне дома',
       'Одежда',
       'Развлечения/кино',
-      'Благотворительность',
+      'Wildberries',
       'Ремонт',
       'Перевод Насте',
       'Подписки',
@@ -322,5 +324,14 @@ h3 {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 </style>
