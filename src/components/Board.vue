@@ -157,6 +157,8 @@ export default defineComponent({
       'Страховка',
       'Визы',
       'Другое',
+      'Лизинг',
+      'Малышка',
     ]);
     const payments = ref([] as PaymentsInfo[]);
 
